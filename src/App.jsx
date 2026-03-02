@@ -67,7 +67,7 @@ export default function App() {
 
   useEffect(() => {
     if (selectedColor) updateHarmony(selectedHarmony);
-  }, [selectedColor]);
+  }, [selectedColor, selectedHarmony, updateHarmony]);
 
   useEffect(() => {
     if (harmonyColors.length > 0) setActivePalette(harmonyColors);

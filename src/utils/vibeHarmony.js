@@ -694,9 +694,7 @@ function describeCompanionRole(input, companion) {
 // ============================================================================
 
 function normalizeHue(hue) {
-  while (hue < 0) hue += 360;
-  while (hue >= 360) hue -= 360;
-  return hue;
+  return ((hue % 360) + 360) % 360;
 }
 
 function clamp(value, min, max) {

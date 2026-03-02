@@ -106,7 +106,7 @@ function generateBrandHarmony(base, options = {}) {
     mode: 'oklch',
     h: normalizeHue((primary.h || 0) + complementAngle),
     c: (primary.c || 0) * 0.75,
-    l: primary.l > 0.5 ? primary.l - 0.25 : primary.l + 0.25
+    l: clamp(primary.l > 0.5 ? primary.l - 0.25 : primary.l + 0.25, 0.05, 0.95)
   };
 
   const palette = [
@@ -164,13 +164,13 @@ function generateEditorialHarmony(base, options = {}) {
       mode: 'oklch',
       h: normalizeHue((base.h || 0) + 150),
       c: (base.c || 0) * 0.5,
-      l: base.l * 1.2
+      l: clamp(base.l * 1.2, 0.05, 0.95)
     },
     {
       mode: 'oklch',
       h: normalizeHue((base.h || 0) + 210),
       c: (base.c || 0) * 0.5,
-      l: base.l * 0.8
+      l: clamp(base.l * 0.8, 0.05, 0.95)
     },
     
     // Rich warm neutral
@@ -383,13 +383,13 @@ export function generateNearTriadic(base, options = {}) {
       mode: 'oklch',
       h: normalizeHue((base.h || 0) + 120 + vary()),
       c: (base.c || 0) * (0.7 + Math.random() * 0.6),
-      l: base.l + (Math.random() - 0.5) * 0.25
+      l: clamp(base.l + (Math.random() - 0.5) * 0.25, 0.05, 0.95)
     },
     {
       mode: 'oklch',
       h: normalizeHue((base.h || 0) + 240 + vary()),
       c: (base.c || 0) * (0.7 + Math.random() * 0.6),
-      l: base.l + (Math.random() - 0.5) * 0.25
+      l: clamp(base.l + (Math.random() - 0.5) * 0.25, 0.05, 0.95)
     }
   ];
 }
@@ -408,7 +408,7 @@ export function generateNearComplementary(base, options = {}) {
       mode: 'oklch',
       h: complementHue,
       c: (base.c || 0) * (0.8 + Math.random() * 0.4),
-      l: base.l > 0.5 ? base.l - 0.3 : base.l + 0.3
+      l: clamp(base.l > 0.5 ? base.l - 0.3 : base.l + 0.3, 0.05, 0.95)
     }
   ];
 }
@@ -543,7 +543,7 @@ export function generateAnalogousWithDepth(base, options = {}) {
       mode: 'oklch',
       h: normalizeHue(baseHue + hueOffset),
       c: (base.c || 0) * (0.5 + Math.sin(t * Math.PI) * 0.5), // Vary chroma in wave
-      l: base.l + (Math.cos(t * Math.PI) * 0.2) // Vary lightness
+      l: clamp(base.l + (Math.cos(t * Math.PI) * 0.2), 0.05, 0.95) // Vary lightness
     };
   });
 }
@@ -597,9 +597,7 @@ export function generateContrastOptimized(base, options = {}) {
 // ============================================================================
 
 function normalizeHue(hue) {
-  while (hue < 0) hue += 360;
-  while (hue >= 360) hue -= 360;
-  return hue;
+  return ((hue % 360) + 360) % 360;
 }
 
 function clamp(value, min, max) {

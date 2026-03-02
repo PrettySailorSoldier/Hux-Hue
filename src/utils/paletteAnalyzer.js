@@ -342,6 +342,7 @@ function generateSummary(healthScore, issues, visualMetrics) {
 // ============================================================================
 
 function average(arr) {
+  if (!arr || arr.length === 0) return 0;
   return arr.reduce((a, b) => a + b, 0) / arr.length;
 }
 

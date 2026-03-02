@@ -12,11 +12,12 @@ const oklch = converter('oklch');
 export const toOklch = (color) => {
   const c = oklch(color);
   // Ensure values are numbers and handle undefined hues
+  // Use ?? instead of || because 0 is valid for all channels
   return {
     mode: 'oklch',
-    l: c.l || 0,
-    c: c.c || 0,
-    h: c.h || 0
+    l: c.l ?? 0,
+    c: c.c ?? 0,
+    h: c.h ?? 0
   };
 };
 
@@ -91,10 +92,15 @@ export const getTetradic = (color) => {
 
 export const getAnalogous = (color, count = 5, slice = 30) => {
   const c = toOklch(color);
-  return Array.from({ length: count }, (_, i) => ({
-    ...c,
-    h: (c.h + (i - Math.floor(count / 2)) * (slice / count)) % 360
-  }));
+  return Array.from({ length: count }, (_, i) => {
+    // Distribute colors evenly across the full slice range
+    // For count=5, slice=30: positions are -15, -7.5, 0, 7.5, 15
+    const offset = count === 1 ? 0 : (i / (count - 1) - 0.5) * slice;
+    return {
+      ...c,
+      h: ((c.h + offset) % 360 + 360) % 360
+    };
+  });
 };
 
 export const getMonochromatic = (color, count = 5) => {

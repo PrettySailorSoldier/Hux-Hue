@@ -162,6 +162,9 @@ export function optimizeForGradient(colors, options = {}) {
     const chromaA = a.c ?? 0;
     const chromaB = b.c ?? 0;
 
+    // Collect intermediate stops and sort by position before adding
+    const intermediateStops = [];
+
     // Add midpoint stop with chroma boost if both endpoints have chroma
     if (boostChroma && chromaA > 0.03 && chromaB > 0.03) {
       const midL = (a.l + b.l) / 2;
@@ -169,37 +172,45 @@ export function optimizeForGradient(colors, options = {}) {
       const midC = Math.max(chromaA, chromaB) * 1.15;
       const midH = interpolateHue(a.h ?? 0, b.h ?? 0, 0.5, huePath);
 
-      expanded.push({
-        mode: 'oklch',
-        l: midL,
-        c: clamp(midC, 0, 0.35),
-        h: midH
+      intermediateStops.push({
+        position: 0.5,
+        color: {
+          mode: 'oklch',
+          l: midL,
+          c: clamp(midC, 0, 0.35),
+          h: midH
+        }
       });
     }
 
-    // For large hue jumps (>90°), add an extra intermediate stop
+    // For large hue jumps (>90°), add extra intermediate stops
     if (hueDist > 90) {
       const quarterH = interpolateHue(a.h ?? 0, b.h ?? 0, 0.25, huePath);
       const threeQuarterH = interpolateHue(a.h ?? 0, b.h ?? 0, 0.75, huePath);
 
-      // Insert at 25% and 75% points
-      const quarterStop = {
-        mode: 'oklch',
-        l: lerp(a.l, b.l, 0.25),
-        c: lerp(chromaA, chromaB, 0.25) * (boostChroma ? 1.1 : 1),
-        h: quarterH
-      };
-      const threeQuarterStop = {
-        mode: 'oklch',
-        l: lerp(a.l, b.l, 0.75),
-        c: lerp(chromaA, chromaB, 0.75) * (boostChroma ? 1.1 : 1),
-        h: threeQuarterH
-      };
-
-      // Insert in correct order
-      expanded.push(quarterStop);
-      expanded.push(threeQuarterStop);
+      intermediateStops.push({
+        position: 0.25,
+        color: {
+          mode: 'oklch',
+          l: lerp(a.l, b.l, 0.25),
+          c: lerp(chromaA, chromaB, 0.25) * (boostChroma ? 1.1 : 1),
+          h: quarterH
+        }
+      });
+      intermediateStops.push({
+        position: 0.75,
+        color: {
+          mode: 'oklch',
+          l: lerp(a.l, b.l, 0.75),
+          c: lerp(chromaA, chromaB, 0.75) * (boostChroma ? 1.1 : 1),
+          h: threeQuarterH
+        }
+      });
     }
+
+    // Sort by position and add to expanded array in correct order
+    intermediateStops.sort((x, y) => x.position - y.position);
+    intermediateStops.forEach(stop => expanded.push(stop.color));
   }
 
   expanded.push(colors[colors.length - 1]);
@@ -660,9 +671,7 @@ background: ${oklchCSS};`;
 // ============================================================================
 
 function normalizeHue(hue) {
-  while (hue < 0) hue += 360;
-  while (hue >= 360) hue -= 360;
-  return hue;
+  return ((hue % 360) + 360) % 360;
 }
 
 function clamp(value, min, max) {
