@@ -432,7 +432,11 @@ export default function App() {
               )}
 
               {activeTab === 'gradient' && (
-                <GradientGenerator initialColors={activePalette.length >= 2 ? activePalette.slice(0, 5) : [selectedColor, { ...selectedColor, h: ((selectedColor.h || 0) + 60) % 360 }]} onColorSelect={handleColorSelect} />
+                <GradientGenerator
+                  baseColor={selectedColor}
+                  initialColors={activePalette.length >= 2 ? activePalette.slice(0, 5) : [selectedColor, { ...selectedColor, h: ((selectedColor.h || 0) + 60) % 360 }]}
+                  onColorSelect={handleColorSelect}
+                />
               )}
 
               {activeTab === 'mixer' && (
